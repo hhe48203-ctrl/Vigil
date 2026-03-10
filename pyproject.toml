@@ -1,0 +1,13 @@
+[project]
+name = "pyagent"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "anthropic>=0.84.0",
+    "chromadb>=0.5.0",
+    "discord-py>=2.7.1",
+    "python-dotenv>=1.2.2",
+    "pyyaml>=6.0.3",
+]

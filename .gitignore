@@ -1,0 +1,22 @@
+# Python-generated files
+__pycache__/
+*.py[oc]
+build/
+dist/
+wheels/
+*.egg-info
+
+# Virtual environments
+.venv
+
+# Local vector store
+workspace/memory/chroma/
+
+.env
+workspace/SOUL.md
+workspace/USER.md
+workspace/HEARTBEAT.md
+workspace/memory/*.md
+SESSION.md
+SPEC.md
+CLAUDE.md
