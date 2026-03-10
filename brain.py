@@ -34,8 +34,13 @@ class Brain:
         self.history_keep_recent = int(
             os.getenv("HISTORY_KEEP_RECENT", str(DEFAULT_HISTORY_KEEP_RECENT))
         )
-        # 跨轮次的对话历史，bot 重启后清空
-        self.history: list = []
+        self.history_file = WORKSPACE_DIR / "memory" / "conversation_history.json"
+        if self.history_file.exists():
+            self.history = self._normalize_history(json.loads(self.history_file.read_text()))
+            self._save_history(self.history)
+            print(f"[brain] 已加载历史对话，共 {len(self.history)} 条")
+        else:
+            self.history = []
         # think() 执行期间收集的截图，调用方读取后应清空
         self.last_images: list[bytes] = []
 
@@ -108,13 +113,100 @@ class Brain:
             lines.append(f"[{role}]\n{content}")
         return "\n\n".join(lines)
 
+    def _is_turn_start_message(self, message: dict) -> bool:
+        """只有普通 user 文本消息才算一轮对话的安全起点。"""
+        return message.get("role") == "user" and isinstance(message.get("content"), str)
+
+    def _has_tool_result(self, message: dict) -> bool:
+        """检查消息是否包含 tool_result 块。"""
+        content = message.get("content")
+        if not isinstance(content, list):
+            return False
+        return any(
+            isinstance(block, dict) and block.get("type") == "tool_result"
+            for block in content
+        )
+
+    def _get_tool_use_ids(self, message: dict) -> set[str]:
+        """从 assistant 消息中提取所有 tool_use id。"""
+        content = message.get("content")
+        if not isinstance(content, list):
+            return set()
+        return {
+            block.get("id") for block in content
+            if isinstance(block, dict) and block.get("type") == "tool_use" and block.get("id")
+        }
+
+    def _normalize_history(self, messages: list) -> list:
+        """全量清洗历史，移除所有孤立的 tool_result/tool_use 消息对。"""
+        if not messages:
+            return []
+
+        original_len = len(messages)
+        cleaned = []
+        i = 0
+        while i < len(messages):
+            msg = messages[i]
+
+            if self._has_tool_result(msg):
+                if not cleaned or cleaned[-1].get("role") != "assistant" or not self._get_tool_use_ids(cleaned[-1]):
+                    print(f"[brain] 丢弃孤立的 tool_result 消息（index {i}）")
+                    i += 1
+                    continue
+
+            if msg.get("role") == "assistant" and self._get_tool_use_ids(msg):
+                if i + 1 >= len(messages) or not self._has_tool_result(messages[i + 1]):
+                    print(f"[brain] 丢弃没有 tool_result 跟随的 tool_use 消息（index {i}）")
+                    i += 1
+                    continue
+
+            cleaned.append(msg)
+            i += 1
+
+        if len(cleaned) < original_len:
+            print(f"[brain] 历史清洗：{original_len} → {len(cleaned)} 条")
+
+        return cleaned
+
+    def _serialize_messages(self, messages: list) -> list:
+        """把消息内容转成可写入 JSON 的普通 dict/list。"""
+        result = []
+        for msg in messages:
+            if isinstance(msg["content"], list):
+                content = []
+                for block in msg["content"]:
+                    if hasattr(block, "model_dump"):
+                        content.append(block.model_dump())
+                    else:
+                        content.append(block)
+                result.append({"role": msg["role"], "content": content})
+            else:
+                result.append(msg)
+        return result
+
+    def _save_history(self, messages: list) -> None:
+        """更新内存中的 history，并持久化到磁盘。"""
+        self.history = messages
+        self.history_file.parent.mkdir(parents=True, exist_ok=True)
+        self.history_file.write_text(
+            json.dumps(self._serialize_messages(self.history), ensure_ascii=False, indent=2)
+        )
+
     async def _compress_history(self, messages: list) -> list:
         """把较旧的历史压缩成一条摘要，保留最近若干条原始消息。"""
         if len(messages) <= self.history_keep_recent:
             return messages
 
-        old_messages = messages[:-self.history_keep_recent]
-        recent_messages = messages[-self.history_keep_recent:]
+        split_idx = len(messages) - self.history_keep_recent
+        while split_idx > 0 and not self._is_turn_start_message(messages[split_idx]):
+            split_idx -= 1
+
+        if split_idx == 0:
+            print("[history] 未找到安全切分点，跳过压缩")
+            return messages
+
+        old_messages = messages[:split_idx]
+        recent_messages = messages[split_idx:]
         summary_input = self._serialize_messages_for_summary(old_messages)
 
         try:
@@ -138,7 +230,9 @@ class Brain:
         print(
             f"[history] 已压缩 {len(old_messages)} 条旧消息，保留最近 {len(recent_messages)} 条"
         )
-        return [{"role": "user", "content": f"[之前对话的摘要]\n{summary_text}"}] + recent_messages
+        return self._normalize_history(
+            [{"role": "user", "content": f"[之前对话的摘要]\n{summary_text}"}] + recent_messages
+        )
 
     async def think(self, user_message: str) -> str:
         """ReAct 循环：调用 Claude API，遇到 tool_use 就执行并继续，遇到文本就返回"""
@@ -175,7 +269,7 @@ class Brain:
                 messages.append({"role": "assistant", "content": final_text})
                 if len(messages) > self.history_compress_threshold:
                     messages = await self._compress_history(messages)
-                self.history = messages
+                self._save_history(messages)
                 return final_text
 
             # 有工具调用 → 执行工具，把结果追加到 messages 继续循环
@@ -207,5 +301,5 @@ class Brain:
         # 超出最大步数，也保存历史
         if len(messages) > self.history_compress_threshold:
             messages = await self._compress_history(messages)
-        self.history = messages
+        self._save_history(messages)
         return final_text or "（达到最大推理步数，停止）"

@@ -18,6 +18,7 @@ workspace/SOUL.md
 workspace/USER.md
 workspace/HEARTBEAT.md
 workspace/memory/*.md
+workspace/memory/conversation_history.json
 workspace/*_cookies.json
 SESSION.md
 SPEC.md

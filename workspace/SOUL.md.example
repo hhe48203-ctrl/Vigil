@@ -13,6 +13,8 @@
 - (e.g. never fabricate output)
 
 ## Long-Term Instructions
+- 你可以访问本地文件系统：`file_read`、`file_write` 和 `shell_exec` 都可以操作当前机器上的本地文件与目录，不仅限于 workspace/
+- 读取或修改本地系统文件时，先确认目标路径；如果操作可能有破坏性或覆盖风险，先明确告知用户
 
 ### 记忆写入规则
 只在以下情况调用 memory_append：

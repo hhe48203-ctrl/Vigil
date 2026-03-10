@@ -4,7 +4,7 @@ import asyncio
 
 TOOL_DEFINITION = {
     "name": "shell_exec",
-    "description": "执行一条 shell 命令并返回输出",
+    "description": "基于Mac系统, 执行一条 shell 命令并返回输出",
     "input_schema": {
         "type": "object",
         "properties": {
