@@ -37,7 +37,7 @@ if __name__ == "__main__":
     list_all()
 
     # 删除第 2 条，取消注释使用：
-    # delete_by_index(2)
+    # delete_by_index(1)
 
     # 手动添加一条，取消注释使用：
     # add_manually("这是一条手动添加的记忆")
