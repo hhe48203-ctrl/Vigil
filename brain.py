@@ -1,5 +1,6 @@
 # 核心模块：ReAct 推理循环，组装 prompt、调用 Claude API、执行工具
 
+import base64
 import json
 import os
 from pathlib import Path
@@ -23,6 +24,8 @@ class Brain:
         self.model = "claude-haiku-4-5-20251001"
         # 跨轮次的对话历史，bot 重启后清空
         self.history: list = []
+        # think() 执行期间收集的截图，调用方读取后应清空
+        self.last_images: list[bytes] = []
 
     def _build_system_prompt(self, query: str) -> str:
         """读取 SOUL.md + USER.md + 相关记忆，组装 system prompt"""
@@ -47,6 +50,7 @@ class Brain:
     async def think(self, user_message: str) -> str:
         """ReAct 循环：调用 Claude API，遇到 tool_use 就执行并继续，遇到文本就返回"""
         system_prompt = self._build_system_prompt(user_message)
+        self.last_images = []
 
         # 在历史记录末尾追加本轮用户消息
         messages = self.history + [{"role": "user", "content": user_message}]
@@ -88,11 +92,19 @@ class Brain:
             for tool_use in tool_uses:
                 print(f"[工具] {tool_use.name} {json.dumps(tool_use.input, ensure_ascii=False)}")
                 result = await self.tool_map[tool_use.name](tool_use.input)
-                print(f"[结果] {str(result)[:200]}")
+
+                if isinstance(result, dict) and result.get("type") == "image":
+                    print(f"[结果] <image {len(result['data'])} bytes base64>")
+                    self.last_images.append(base64.b64decode(result["data"]))
+                    content = [{"type": "image", "source": {"type": "base64", "media_type": "image/png", "data": result["data"]}}]
+                else:
+                    print(f"[结果] {str(result)[:200]}")
+                    content = str(result)
+
                 tool_results.append({
                     "type": "tool_result",
                     "tool_use_id": tool_use.id,
-                    "content": str(result),
+                    "content": content,
                 })
 
             messages.append({"role": "user", "content": tool_results})

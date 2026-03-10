@@ -26,6 +26,8 @@ class Gateway:
 
             try:
                 reply = await self.brain.think(message["content"])
+                for img_data in self.brain.last_images:
+                    await self.discord.send_image(img_data)
                 await self.discord.send_message(reply)
             except Exception as e:
                 print(f"处理消息出错: {e}")

@@ -13,10 +13,12 @@ wheels/
 workspace/memory/chroma/
 
 .env
+.DS_Store
 workspace/SOUL.md
 workspace/USER.md
 workspace/HEARTBEAT.md
 workspace/memory/*.md
+workspace/*_cookies.json
 SESSION.md
 SPEC.md
 CLAUDE.md

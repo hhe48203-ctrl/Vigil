@@ -1,5 +1,7 @@
 # Discord 通道：监听消息、过滤 bot 自身消息、发送回复
 
+import io
+
 import discord
 
 
@@ -57,6 +59,14 @@ class DiscordChannel:
         while text:
             chunk, text = text[:2000], text[2000:]
             await channel.send(chunk)
+
+    async def send_image(self, data: bytes, filename: str = "screenshot.png") -> None:
+        """发送图片到 Discord 频道"""
+        channel = self.client.get_channel(self.channel_id)
+        if channel is None:
+            print(f"找不到频道 {self.channel_id}")
+            return
+        await channel.send(file=discord.File(io.BytesIO(data), filename=filename))
 
     async def run(self) -> None:
         """启动 Discord bot（阻塞式，需要在 TaskGroup 里跑）"""
