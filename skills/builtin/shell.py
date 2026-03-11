@@ -1,6 +1,9 @@
-# 工具：执行 shell 命令，返回 stdout + stderr，拒绝危险命令
+# 工具：执行 shell 命令，危险命令需用户审批后才执行
 
 import asyncio
+import re
+
+from approval_manager import approval_manager
 
 TOOL_DEFINITION = {
     "name": "shell_exec",
@@ -17,23 +20,49 @@ TOOL_DEFINITION = {
     }
 }
 
-DANGEROUS_PATTERNS = ["rm -rf", "sudo", "mkfs", "dd if=", "> /dev/"]
+# 危险命令正则模式，覆盖空格变体和路径前缀绕过
+# 使用正则而非字符串匹配，防止 "rm  -rf"（双空格）或 "/usr/bin/sudo" 绕过
+_DANGEROUS_PATTERNS: list[tuple[str, re.Pattern]] = [
+    ("rm -rf",     re.compile(r"rm\s+-[^\s]*r[^\s]*f|rm\s+-[^\s]*f[^\s]*r")),
+    ("sudo",       re.compile(r"(^|[\s/])sudo(\s|$)")),
+    ("mkfs",       re.compile(r"\bmkfs\b")),
+    ("dd 写磁盘",   re.compile(r"\bdd\b.*\bif=")),
+    ("写入 /dev",  re.compile(r">\s*/dev/")),
+    ("远程执行脚本", re.compile(r"(curl|wget).*\|\s*(ba)?sh")),
+]
+
+
+def _detect_dangerous(command: str) -> str | None:
+    """返回匹配到的危险模式描述，或 None（命令安全）。"""
+    for label, pattern in _DANGEROUS_PATTERNS:
+        if pattern.search(command):
+            return label
+    return None
 
 
 async def execute(args: dict) -> str:
-    """执行 shell 命令，返回输出结果；危险命令直接拒绝"""
+    """执行 shell 命令；危险命令先向用户请求审批，批准后再执行。"""
     command = args["command"]
 
-    for pattern in DANGEROUS_PATTERNS:
-        if pattern in command:
-            return f"[拒绝] 命令包含危险操作 '{pattern}'，未执行。"
+    danger = _detect_dangerous(command)
+    if danger:
+        print(f"[shell] 检测到危险命令（{danger}），请求用户审批")
+        approved = await approval_manager.request(command)
+        if not approved:
+            return f"[拒绝] 用户未批准命令（危险类型：{danger}），未执行。"
 
     proc = await asyncio.create_subprocess_shell(
         command,
         stdout=asyncio.subprocess.PIPE,
         stderr=asyncio.subprocess.PIPE,
     )
-    stdout, stderr = await proc.communicate()
+
+    try:
+        stdout, stderr = await asyncio.wait_for(proc.communicate(), timeout=30)
+    except asyncio.TimeoutError:
+        proc.kill()
+        await proc.communicate()  # 清理子进程资源
+        return "[超时] 命令执行超过 30 秒，已终止。"
 
     output = stdout.decode().strip()
     error = stderr.decode().strip()

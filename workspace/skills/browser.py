@@ -36,7 +36,7 @@ async def _goto(args: dict) -> str:
         return f"操作失败：{e}"
 
 
-async def _screenshot(args: dict) -> dict:
+async def _screenshot(args: dict) -> str:
     try:
         page = await _get_page()
         data = await page.screenshot(type="png")

@@ -71,7 +71,8 @@ async def execute(tool_name: str, args: dict) -> str:
             memory_file.write_text(f"# {today}\n\n")
 
         time_str = datetime.now().strftime("%H:%M")
-        memory_file.open("a").write(f"- {time_str} {args['content']}\n")
+        with memory_file.open("a") as f:
+            f.write(f"- {time_str} {args['content']}\n")
         add_memory(args["content"], today)
 
         return f"已记录：{args['content']}"

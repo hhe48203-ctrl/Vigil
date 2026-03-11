@@ -11,6 +11,7 @@ from brain import Brain
 from heartbeat import Heartbeat
 from channels.discord_channel import DiscordChannel
 from skills.loader import load_skills
+from approval_manager import approval_manager
 
 
 async def main():
@@ -36,6 +37,7 @@ async def main():
 
     # 注入依赖
     discord_channel.set_gateway(gateway)
+    approval_manager.set_send_callback(discord_channel.send_message)
 
     print("启动 PyAgent...")
     async with asyncio.TaskGroup() as tg:

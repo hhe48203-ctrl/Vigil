@@ -4,6 +4,8 @@ import io
 
 import discord
 
+from approval_manager import approval_manager
+
 
 class DiscordChannel:
     """Discord bot，收发消息，把用户消息丢给 Gateway 的队列"""
@@ -35,6 +37,25 @@ class DiscordChannel:
             # 只监听目标频道
             if message.channel.id != self.channel_id:
                 return
+
+            # 优先检查是否有待审批的危险命令
+            # 若有，拦截 yes/no 回复并 resolve，不路由到 Gateway
+            if approval_manager.is_pending:
+                text = message.content.strip().lower()
+                if text in ("yes", "y", "是", "确认", "approve"):
+                    approval_manager.resolve(True)
+                    await message.channel.send("✅ 已批准，执行中...")
+                    return
+                if text in ("no", "n", "否", "拒绝", "deny"):
+                    approval_manager.resolve(False)
+                    await message.channel.send("❌ 已拒绝，命令取消。")
+                    return
+                # 其他内容：提示用户当前处于审批等待状态
+                await message.channel.send(
+                    "⏳ 正在等待命令审批，请回复 `yes` 或 `no`。"
+                )
+                return
+
             if self.gateway is None:
                 return
 
