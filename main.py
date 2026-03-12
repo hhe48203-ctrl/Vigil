@@ -24,13 +24,13 @@ async def main():
         print("请在 .env 中设置 DISCORD_BOT_TOKEN 和 DISCORD_CHANNEL_ID")
         sys.exit(1)
 
-    # 加载工具（Week 1 暂时为空列表也能跑）
-    tools, tool_map = load_skills()
+    # 加载工具和 .md skill 行为指南
+    tools, tool_map, skill_docs = load_skills()
 
     # 初始化各模块
     # heartbeat 用独立的 Brain 实例，避免和用户对话共享 history 导致 tool_use 消息错位
-    brain = Brain(tools=tools, tool_map=tool_map)
-    heartbeat_brain = Brain(tools=tools, tool_map=tool_map)
+    brain = Brain(tools=tools, tool_map=tool_map, skill_docs=skill_docs)
+    heartbeat_brain = Brain(tools=tools, tool_map=tool_map, skill_docs=skill_docs)
     discord_channel = DiscordChannel(token=token, channel_id=int(channel_id))
     gateway = Gateway(brain=brain, discord_channel=discord_channel)
     heartbeat = Heartbeat(brain=heartbeat_brain, discord_channel=discord_channel)

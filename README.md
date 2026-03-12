@@ -1,15 +1,19 @@
 # Vigil
 
+[中文版](README_CN.md)
+
 A personal Discord AI agent powered by Claude. It reasons in a ReAct loop, uses tools to interact with your filesystem and shell, and builds long-term memory through semantic search.
 
 Inspired by [OpenClaw](https://github.com/OpenClaw) — a Python reimplementation built to understand the core architecture from the ground up.
+
+---
 
 ## Features
 
 - **ReAct reasoning loop** — Claude thinks step-by-step, calling tools as needed before responding
 - **Semantic memory** — important events are stored in ChromaDB; each message retrieves the most relevant memories via vector search
 - **Persistent identity** — `SOUL.md` defines the agent's personality and rules; `USER.md` stores what it knows about you; both are updated by the agent over time
-- **Extensible skill system** — builtin tools (file ops, shell, memory) plus user-defined skills in `workspace/skills/` that are loaded dynamically at startup
+- **Extensible skill system** — builtin tools (file ops, shell, memory) plus user-defined tools and skills in `workspace/skills/` that are loaded dynamically at startup
 - **Dangerous command approval** — shell commands matching risky patterns (e.g. `rm -rf`, `sudo`, `dd`) require explicit user confirmation via Discord before executing
 - **History compression** — when conversation history grows too long, older messages are summarized automatically to stay within context limits
 - **Heartbeat** — runs an autonomous check every 30 minutes based on `HEARTBEAT.md`; only notifies you if something is wrong
@@ -25,7 +29,7 @@ heartbeat.py         — periodic autonomous task runner
 approval_manager.py  — middleware for dangerous shell commands (request → Discord → resolve)
 channels/            — Discord bot (receive/send messages, handle approvals)
 skills/
-  loader.py          — dynamic skill loader (builtin + workspace/skills/)
+  loader.py          — dynamic loader for tools (.py) and skills (.md)
   builtin/           — core tools: file_ops, shell, memory_ops
 memory/              — ChromaDB vector store wrapper
 workspace/
@@ -33,7 +37,7 @@ workspace/
   USER.md            — user profile (updated by the agent over time)
   HEARTBEAT.md       — autonomous task prompt
   memory/            — daily memory logs (.md) + ChromaDB vector index
-  skills/            — user-defined skills (override builtins if same name)
+  skills/            — user-defined tools (.py) and skills (.md)
 ```
 
 ### Memory system
@@ -41,8 +45,10 @@ workspace/
 Every call to `brain.think()` constructs the system prompt fresh:
 
 ```
-SOUL.md  (full text, always)
-USER.md  (full text, always)
+Current time
+SOUL.md          (full text, always)
+USER.md          (full text, always)
+Skill docs       (any .md skills from workspace/skills/, always)
 Relevant Memories  (top-8 semantic search results from ChromaDB)
 ```
 
@@ -50,7 +56,10 @@ When the agent calls `memory_append`, the content is written to both a plain-tex
 
 ### Skill system
 
-Skills are Python modules that expose either a single `TOOL_DEFINITION` or a list `TOOL_DEFINITIONS`. At startup, `skills/loader.py` loads all builtin skills first, then all modules in `workspace/skills/`. Workspace skills override builtins if they share the same tool name, letting you customize or replace any tool without touching core code.
+`workspace/skills/` supports two file types:
+
+- **`.py` files (Tools)** — expose a `TOOL_DEFINITION` dict and an `async execute()` function. Registered as Claude API tools; Claude can call them to run code. Workspace tools override builtins if they share the same tool name.
+- **`.md` files (Skills)** — require a `---` YAML frontmatter block. Content is injected into the system prompt as behavioral guidance; no code is executed. Useful for defining response style, domain knowledge, or constraints without writing Python.
 
 ### Dangerous command approval
 
@@ -67,7 +76,7 @@ When the conversation history exceeds `HISTORY_COMPRESS_THRESHOLD` messages, `br
 ```bash
 git clone <repo-url>
 cd pyagent
-uv sync          # or: pip install -r requirements.txt
+uv sync
 ```
 
 **2. Configure environment**
@@ -131,27 +140,43 @@ uv run python manage_memory.py clear
 
 The raw `.md` memory logs live in `workspace/memory/` and are not tracked by git.
 
-## Adding custom skills
+## Adding custom tools and skills
 
-Create a Python file in `workspace/skills/`. It must expose either:
+Drop files into `workspace/skills/`. They are loaded automatically on next startup.
 
-```python
-# Single tool
-TOOL_DEFINITION = {"name": "my_tool", "description": "...", "input_schema": {...}}
-
-async def my_tool(param: str) -> str:
-    ...
-```
+**Tool** (`.py`) — for capabilities that require running code:
 
 ```python
-# Multiple tools
-TOOL_DEFINITIONS = [
-    {"name": "tool_a", ...},
-    {"name": "tool_b", ...},
-]
+# 一行中文注释说明用途
 
-async def tool_a(...): ...
-async def tool_b(...): ...
+TOOL_DEFINITION = {
+    "name": "my_tool",
+    "description": "What this tool does (Claude reads this to decide when to call it)",
+    "input_schema": {
+        "type": "object",
+        "properties": {
+            "param": {"type": "string", "description": "parameter description"}
+        },
+        "required": ["param"]
+    }
+}
+
+async def execute(args: dict) -> str:
+    return "result"
 ```
 
-The skill is loaded automatically on next startup. If the tool name matches a builtin, your workspace skill takes precedence.
+**Skill** (`.md`) — for behavioral guidance injected into the system prompt:
+
+```markdown
+---
+name: my_skill
+description: brief description
+---
+
+## Rules
+
+- rule 1
+- rule 2
+```
+
+> A `.md` file without `---` frontmatter is ignored (so `README.md` is safe to keep here).

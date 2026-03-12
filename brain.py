@@ -24,10 +24,11 @@ WORKSPACE_DIR = Path(__file__).parent / "workspace"
 class Brain:
     """ReAct 推理引擎，接收消息，返回最终回复文本"""
 
-    def __init__(self, tools: list, tool_map: dict):
+    def __init__(self, tools: list, tool_map: dict, skill_docs: list | None = None):
         self.client = anthropic.AsyncAnthropic()
         self.tools = tools
         self.tool_map = tool_map
+        self.skill_docs = skill_docs or []
         self.model = "claude-haiku-4-5-20251001"
         self.history_compress_threshold = int(
             os.getenv("HISTORY_COMPRESS_THRESHOLD", str(DEFAULT_HISTORY_COMPRESS_THRESHOLD))
@@ -66,6 +67,13 @@ class Brain:
         user_path = WORKSPACE_DIR / "USER.md"
         if user_path.exists():
             parts.append(user_path.read_text())
+
+        # 注入 .md skill 行为指南
+        for skill in self.skill_docs:
+            header = f"# Skill: {skill['name']}"
+            if skill.get("description"):
+                header += f"\n_{skill['description']}_"
+            parts.append(f"{header}\n\n{skill['content']}")
 
         memories = search_memory(query)
         if memories:
