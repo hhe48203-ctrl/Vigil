@@ -3,6 +3,7 @@
 import asyncio
 import os
 import sys
+from pathlib import Path
 
 from dotenv import load_dotenv
 
@@ -11,7 +12,10 @@ from brain import Brain
 from heartbeat import Heartbeat
 from channels.discord_channel import DiscordChannel
 from skills.loader import load_skills
+from skills.mcp_loader import load_mcp_tools, cleanup_mcp
 from approval_manager import approval_manager
+
+WORKSPACE_DIR = Path(__file__).parent / "workspace"
 
 
 async def main():
@@ -24,8 +28,13 @@ async def main():
         print("请在 .env 中设置 DISCORD_BOT_TOKEN 和 DISCORD_CHANNEL_ID")
         sys.exit(1)
 
-    # 加载工具和 .md skill 行为指南
+    # 加载本地工具和 .md skill 行为指南
     tools, tool_map, skill_docs = load_skills()
+
+    # 加载 MCP 工具（workspace/mcp.json 不存在时自动跳过）
+    mcp_tools, mcp_tool_map = await load_mcp_tools(WORKSPACE_DIR / "mcp.json")
+    tools = tools + mcp_tools
+    tool_map = {**tool_map, **mcp_tool_map}
 
     # 初始化各模块
     # heartbeat 用独立的 Brain 实例，避免和用户对话共享 history 导致 tool_use 消息错位
@@ -40,10 +49,13 @@ async def main():
     approval_manager.set_send_callback(discord_channel.send_message)
 
     print("启动 PyAgent...")
-    async with asyncio.TaskGroup() as tg:
-        tg.create_task(discord_channel.run())
-        tg.create_task(gateway.run())
-        tg.create_task(heartbeat.run())
+    try:
+        async with asyncio.TaskGroup() as tg:
+            tg.create_task(discord_channel.run())
+            tg.create_task(gateway.run())
+            tg.create_task(heartbeat.run())
+    finally:
+        cleanup_mcp()
 
 
 if __name__ == "__main__":
