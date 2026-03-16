@@ -147,7 +147,7 @@ Drop files into `workspace/skills/`. They are loaded automatically on next start
 **Tool** (`.py`) — for capabilities that require running code:
 
 ```python
-# 一行中文注释说明用途
+# one-line comment explaining the purpose
 
 TOOL_DEFINITION = {
     "name": "my_tool",
