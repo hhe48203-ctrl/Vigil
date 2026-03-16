@@ -24,20 +24,22 @@ WORKSPACE_DIR = Path(__file__).parent / "workspace"
 class Brain:
     """ReAct 推理引擎，接收消息，返回最终回复文本"""
 
-    def __init__(self, tools: list, tool_map: dict, skill_docs: list | None = None):
+    def __init__(self, tools: list, tool_map: dict, skill_docs: list | None = None,
+                 history_file: Path | None = None, save_history: bool = True):
         self.client = anthropic.AsyncAnthropic()
         self.tools = tools
         self.tool_map = tool_map
         self.skill_docs = skill_docs or []
         self.model = "claude-haiku-4-5-20251001"
+        self.save_history_enabled = save_history
         self.history_compress_threshold = int(
             os.getenv("HISTORY_COMPRESS_THRESHOLD", str(DEFAULT_HISTORY_COMPRESS_THRESHOLD))
         )
         self.history_keep_recent = int(
             os.getenv("HISTORY_KEEP_RECENT", str(DEFAULT_HISTORY_KEEP_RECENT))
         )
-        self.history_file = WORKSPACE_DIR / "memory" / "conversation_history.json"
-        if self.history_file.exists():
+        self.history_file = history_file or (WORKSPACE_DIR / "memory" / "conversation_history.json")
+        if self.save_history_enabled and self.history_file.exists():
             self.history = self._normalize_history(json.loads(self.history_file.read_text()))
             self._save_history(self.history)
             print(f"[brain] 已加载历史对话，共 {len(self.history)} 条")
@@ -217,6 +219,8 @@ class Brain:
     def _save_history(self, messages: list) -> None:
         """更新内存中的 history，并持久化到磁盘。"""
         self.history = messages
+        if not self.save_history_enabled:
+            return
         self.history_file.parent.mkdir(parents=True, exist_ok=True)
         self.history_file.write_text(
             json.dumps(self._serialize_messages(self.history), ensure_ascii=False, indent=2)

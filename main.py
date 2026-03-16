@@ -7,6 +7,7 @@ from pathlib import Path
 
 from dotenv import load_dotenv
 
+from config import load_config
 from gateway import Gateway
 from brain import Brain
 from heartbeat import Heartbeat
@@ -21,11 +22,13 @@ WORKSPACE_DIR = Path(__file__).parent / "workspace"
 async def main():
     """启动所有模块，用 TaskGroup 并发运行"""
     load_dotenv()
+    cfg = load_config()
 
-    token = os.getenv("DISCORD_BOT_TOKEN")
-    channel_id = os.getenv("DISCORD_CHANNEL_ID")
+    token = cfg.get("discord_bot_token")
+    channel_id = cfg.get("discord_channel_id")
     if not token or not channel_id:
-        print("请在 .env 中设置 DISCORD_BOT_TOKEN 和 DISCORD_CHANNEL_ID")
+        print("请在 config.yaml 或 .env 中设置 discord_bot_token 和 discord_channel_id")
+        print("运行 `uv run python doctor.py` 检查配置")
         sys.exit(1)
 
     # 加载本地工具和 .md skill 行为指南
@@ -37,9 +40,9 @@ async def main():
     tool_map = {**tool_map, **mcp_tool_map}
 
     # 初始化各模块
-    # heartbeat 用独立的 Brain 实例，避免和用户对话共享 history 导致 tool_use 消息错位
+    # heartbeat 用独立的 Brain 实例，禁用历史持久化，避免污染主对话历史
     brain = Brain(tools=tools, tool_map=tool_map, skill_docs=skill_docs)
-    heartbeat_brain = Brain(tools=tools, tool_map=tool_map, skill_docs=skill_docs)
+    heartbeat_brain = Brain(tools=tools, tool_map=tool_map, skill_docs=skill_docs, save_history=False)
     discord_channel = DiscordChannel(token=token, channel_id=int(channel_id))
     gateway = Gateway(brain=brain, discord_channel=discord_channel)
     heartbeat = Heartbeat(brain=heartbeat_brain, discord_channel=discord_channel)

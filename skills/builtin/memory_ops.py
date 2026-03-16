@@ -23,6 +23,10 @@ TOOL_DEFINITIONS = [
                 "content": {
                     "type": "string",
                     "description": "要记录的内容，一句话简洁描述关键信息，如 '用户的毕业论文题目是《分布式系统中的一致性》'"
+                },
+                "tag": {
+                    "type": "string",
+                    "description": "可选标签，分类记忆便于检索，如 'preference'、'project'、'fact'"
                 }
             },
             "required": ["content"]
@@ -79,9 +83,15 @@ async def execute(tool_name: str, args: dict) -> str:
             memory_file.write_text(f"# {today}\n\n")
 
         time_str = datetime.now().strftime("%H:%M")
+        tag = args.get("tag", "")
+        result = add_memory(args["content"], today, tag=tag)
+
+        # 去重：如果跳过了就不写日志文件
+        if "跳过" in result:
+            return result
+
         with memory_file.open("a") as f:
             f.write(f"- {time_str} {args['content']}\n")
-        add_memory(args["content"], today)
 
         return f"已记录：{args['content']}"
 

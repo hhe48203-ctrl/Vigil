@@ -1,0 +1,15 @@
+# PyAgent 配置文件
+# 所有配置也可以通过 .env 环境变量覆盖
+
+# --- 必填 ---
+# anthropic_api_key: sk-ant-...
+# discord_bot_token: ...
+# discord_channel_id: "123456789"
+
+# --- 可选 ---
+heartbeat_interval: 1800          # 心跳间隔（秒），默认 30 分钟
+history_compress_threshold: 40    # 对话历史超过此条数时触发压缩
+history_keep_recent: 20           # 压缩后保留最近消息数
+model: claude-haiku-4-5-20251001  # 默认模型
+
+# tavily_api_key: tvly-...        # Tavily 搜索 API 密钥（web_search 工具需要）
