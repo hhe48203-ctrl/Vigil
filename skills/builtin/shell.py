@@ -7,13 +7,17 @@ from approval_manager import approval_manager
 
 TOOL_DEFINITION = {
     "name": "shell_exec",
-    "description": "基于Mac系统, 执行一条 shell 命令并返回输出",
+    "description": (
+        "在 macOS 上执行 shell 命令并返回 stdout/stderr。"
+        "适用场景：运行脚本、安装软件、查系统信息、网络诊断、列目录、搜代码、"
+        "查进程端口、执行 git 命令等。危险命令会自动请求用户审批。"
+    ),
     "input_schema": {
         "type": "object",
         "properties": {
             "command": {
                 "type": "string",
-                "description": "要执行的 shell 命令"
+                "description": "要执行的 shell 命令，如 'ls -la', 'python3 script.py', 'curl https://...'"
             }
         },
         "required": ["command"]

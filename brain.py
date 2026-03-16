@@ -75,6 +75,17 @@ class Brain:
                 header += f"\n_{skill['description']}_"
             parts.append(f"{header}\n\n{skill['content']}")
 
+        # 可用工具概览，帮助 LLM 快速了解自己的能力边界
+        if self.tools:
+            tool_names = [t["name"] for t in self.tools]
+            tool_overview = (
+                "# Available Tools\n"
+                f"你可以调用以下工具：{', '.join(tool_names)}\n"
+                "根据用户请求选择合适的工具。可以连续调用多个工具完成复杂任务。"
+                "如果不确定用哪个工具，参考 SOUL.md 中的工具选择决策树。"
+            )
+            parts.append(tool_overview)
+
         memories = search_memory(query)
         if memories:
             memory_block = ["# Relevant Memories", ""]

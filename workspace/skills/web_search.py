@@ -5,17 +5,21 @@ import httpx
 
 TOOL_DEFINITION = {
     "name": "web_search",
-    "description": "使用 Tavily 搜索网页信息并返回结果摘要",
+    "description": (
+        "搜索互联网，返回相关网页的标题、URL 和内容摘要。"
+        "用途：查找最新信息、验证事实、获取技术文档、查新闻时事。"
+        "技巧：技术话题用英文关键词效果更好；搜索结果不够详细时可用 browser_goto 访问具体链接。"
+    ),
     "input_schema": {
         "type": "object",
         "properties": {
             "query": {
                 "type": "string",
-                "description": "搜索关键词",
+                "description": "搜索关键词，如 'Python asyncio tutorial' 或 'Edmonton 天气'",
             },
             "max_results": {
                 "type": "integer",
-                "description": "返回结果数量，默认 5",
+                "description": "返回结果数量（1-10），默认 5",
             },
         },
         "required": ["query"],

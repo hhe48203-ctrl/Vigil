@@ -14,13 +14,17 @@ WRITE_BLACKLIST = {
 TOOL_DEFINITIONS = [
     {
         "name": "file_read",
-        "description": "读取本地文件系统中的指定文件内容，支持绝对路径、相对路径和 ~",
+        "description": (
+            "读取本地文件的完整内容并返回。支持绝对路径、相对路径和 ~/。"
+            "用途：查看配置文件、代码文件、日志、文档等。"
+            "修改文件前必须先 file_read 获取当前内容。"
+        ),
         "input_schema": {
             "type": "object",
             "properties": {
                 "path": {
                     "type": "string",
-                    "description": "文件路径。可用绝对路径、相对当前工作目录的路径，或 ~/Desktop/a.txt 这类路径"
+                    "description": "文件路径，如 '/Users/aa/Desktop/test.py'、'workspace/SOUL.md'、'~/notes.txt'"
                 }
             },
             "required": ["path"]
@@ -28,17 +32,22 @@ TOOL_DEFINITIONS = [
     },
     {
         "name": "file_write",
-        "description": "写入内容到本地文件系统中的指定文件，支持绝对路径、相对路径和 ~",
+        "description": (
+            "创建或覆写本地文件。支持绝对路径、相对路径和 ~/。"
+            "用途：创建新文件、保存代码、写入配置。"
+            "注意：这是覆盖写入，修改已有文件时请先 file_read 读取内容再修改后写回。"
+            "SOUL.md 和 USER.md 有专用工具，不能用此工具修改。"
+        ),
         "input_schema": {
             "type": "object",
             "properties": {
                 "path": {
                     "type": "string",
-                    "description": "文件路径。可用绝对路径、相对当前工作目录的路径，或 ~/Desktop/a.txt 这类路径"
+                    "description": "文件路径，如 '/Users/aa/Desktop/test.py'、'workspace/notes.md'"
                 },
                 "content": {
                     "type": "string",
-                    "description": "要写入的内容（覆盖写）"
+                    "description": "要写入的完整内容（会覆盖文件原有内容）"
                 }
             },
             "required": ["path", "content"]
