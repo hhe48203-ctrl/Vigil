@@ -1,0 +1,149 @@
+[
+  {
+    "id": 1,
+    "prompt": "搜一下今天北京的天气怎么样",
+    "expected_tools": ["web_search"],
+    "match_mode": "first_tool",
+    "tags": ["search"]
+  },
+  {
+    "id": 2,
+    "prompt": "查一下 Python 3.12 有哪些新特性",
+    "expected_tools": ["web_search"],
+    "match_mode": "first_tool",
+    "tags": ["search"]
+  },
+  {
+    "id": 3,
+    "prompt": "帮我搜索一下最新的 Claude API 文档",
+    "expected_tools": ["web_search"],
+    "match_mode": "first_tool",
+    "tags": ["search"]
+  },
+  {
+    "id": 4,
+    "prompt": "搜索 uv 包管理工具的使用教程",
+    "expected_tools": ["web_search"],
+    "match_mode": "first_tool",
+    "tags": ["search"]
+  },
+  {
+    "id": 5,
+    "prompt": "查看一下磁盘使用情况",
+    "expected_tools": ["shell_exec"],
+    "match_mode": "first_tool",
+    "tags": ["shell"]
+  },
+  {
+    "id": 6,
+    "prompt": "列出当前目录下的所有文件",
+    "expected_tools": ["shell_exec"],
+    "match_mode": "first_tool",
+    "tags": ["shell"]
+  },
+  {
+    "id": 7,
+    "prompt": "查看系统当前运行的进程",
+    "expected_tools": ["shell_exec"],
+    "match_mode": "first_tool",
+    "tags": ["shell"]
+  },
+  {
+    "id": 8,
+    "prompt": "执行 echo hello world 命令",
+    "expected_tools": ["shell_exec"],
+    "match_mode": "first_tool",
+    "tags": ["shell"]
+  },
+  {
+    "id": 9,
+    "prompt": "读一下 workspace/SOUL.md 的内容",
+    "expected_tools": ["file_read"],
+    "match_mode": "first_tool",
+    "tags": ["file_read"]
+  },
+  {
+    "id": 10,
+    "prompt": "查看 /tmp/test.txt 文件的内容",
+    "expected_tools": ["file_read"],
+    "match_mode": "first_tool",
+    "tags": ["file_read"]
+  },
+  {
+    "id": 11,
+    "prompt": "帮我读取 workspace/USER.md",
+    "expected_tools": ["file_read"],
+    "match_mode": "first_tool",
+    "tags": ["file_read"]
+  },
+  {
+    "id": 12,
+    "prompt": "把 '今天天气很好，心情不错' 这句话写入 /tmp/note.txt",
+    "expected_tools": ["file_write"],
+    "match_mode": "first_tool",
+    "tags": ["file_write"]
+  },
+  {
+    "id": 13,
+    "prompt": "创建一个文件 /tmp/hello.md，内容是 # Hello World",
+    "expected_tools": ["file_write"],
+    "match_mode": "first_tool",
+    "tags": ["file_write"]
+  },
+  {
+    "id": 14,
+    "prompt": "记住我住在上海",
+    "expected_tools": ["memory_append"],
+    "match_mode": "first_tool",
+    "tags": ["memory"]
+  },
+  {
+    "id": 15,
+    "prompt": "帮我记一下：我的项目截止日期是下周五",
+    "expected_tools": ["memory_append"],
+    "match_mode": "first_tool",
+    "tags": ["memory"]
+  },
+  {
+    "id": 16,
+    "prompt": "请记住我喜欢简洁的回答风格",
+    "expected_tools": ["memory_append"],
+    "match_mode": "first_tool",
+    "tags": ["memory"]
+  },
+  {
+    "id": 17,
+    "prompt": "你好",
+    "expected_tools": [],
+    "match_mode": "none",
+    "tags": ["no_tool"]
+  },
+  {
+    "id": 18,
+    "prompt": "1 加 1 等于几？",
+    "expected_tools": [],
+    "match_mode": "none",
+    "tags": ["no_tool"]
+  },
+  {
+    "id": 19,
+    "prompt": "用中文介绍一下你自己",
+    "expected_tools": [],
+    "match_mode": "none",
+    "tags": ["no_tool"]
+  },
+  {
+    "id": 20,
+    "prompt": "帮我搜索 Python asyncio 教程，然后把搜索结果写入 /tmp/asyncio_notes.txt",
+    "expected_tools": ["web_search", "file_write"],
+    "match_mode": "any",
+    "tags": ["chain"]
+  },
+  {
+    "id": 21,
+    "prompt": "先查看 /tmp/data.txt 的内容，再把内容整理后保存到 /tmp/data_clean.txt",
+    "expected_tools": ["file_read", "file_write"],
+    "match_mode": "any",
+    "tags": ["chain"]
+  }
+]

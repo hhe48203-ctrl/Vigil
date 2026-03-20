@@ -1,0 +1,341 @@
+{
+  "date": "2026-03-19",
+  "total": 21,
+  "passed": 18,
+  "accuracy": 0.8571,
+  "cases": [
+    {
+      "id": 1,
+      "prompt": "搜一下今天北京的天气怎么样",
+      "tags": [
+        "search"
+      ],
+      "passed": true,
+      "called_tools": [
+        "web_search"
+      ],
+      "expected_tools": [
+        "web_search"
+      ],
+      "match_mode": "first_tool",
+      "reason": ""
+    },
+    {
+      "id": 2,
+      "prompt": "查一下 Python 3.12 有哪些新特性",
+      "tags": [
+        "search"
+      ],
+      "passed": true,
+      "called_tools": [
+        "web_search"
+      ],
+      "expected_tools": [
+        "web_search"
+      ],
+      "match_mode": "first_tool",
+      "reason": ""
+    },
+    {
+      "id": 3,
+      "prompt": "帮我搜索一下最新的 Claude API 文档",
+      "tags": [
+        "search"
+      ],
+      "passed": true,
+      "called_tools": [
+        "web_search"
+      ],
+      "expected_tools": [
+        "web_search"
+      ],
+      "match_mode": "first_tool",
+      "reason": ""
+    },
+    {
+      "id": 4,
+      "prompt": "搜索 uv 包管理工具的使用教程",
+      "tags": [
+        "search"
+      ],
+      "passed": true,
+      "called_tools": [
+        "web_search",
+        "browser_goto",
+        "browser_screenshot",
+        "browser_get_text"
+      ],
+      "expected_tools": [
+        "web_search"
+      ],
+      "match_mode": "first_tool",
+      "reason": ""
+    },
+    {
+      "id": 5,
+      "prompt": "查看一下磁盘使用情况",
+      "tags": [
+        "shell"
+      ],
+      "passed": true,
+      "called_tools": [
+        "shell_exec"
+      ],
+      "expected_tools": [
+        "shell_exec"
+      ],
+      "match_mode": "first_tool",
+      "reason": ""
+    },
+    {
+      "id": 6,
+      "prompt": "列出当前目录下的所有文件",
+      "tags": [
+        "shell"
+      ],
+      "passed": true,
+      "called_tools": [
+        "shell_exec",
+        "shell_exec",
+        "shell_exec"
+      ],
+      "expected_tools": [
+        "shell_exec"
+      ],
+      "match_mode": "first_tool",
+      "reason": ""
+    },
+    {
+      "id": 7,
+      "prompt": "查看系统当前运行的进程",
+      "tags": [
+        "shell"
+      ],
+      "passed": true,
+      "called_tools": [
+        "shell_exec"
+      ],
+      "expected_tools": [
+        "shell_exec"
+      ],
+      "match_mode": "first_tool",
+      "reason": ""
+    },
+    {
+      "id": 8,
+      "prompt": "执行 echo hello world 命令",
+      "tags": [
+        "shell"
+      ],
+      "passed": true,
+      "called_tools": [
+        "shell_exec"
+      ],
+      "expected_tools": [
+        "shell_exec"
+      ],
+      "match_mode": "first_tool",
+      "reason": ""
+    },
+    {
+      "id": 9,
+      "prompt": "读一下 workspace/SOUL.md 的内容",
+      "tags": [
+        "file_read"
+      ],
+      "passed": true,
+      "called_tools": [
+        "file_read",
+        "shell_exec",
+        "shell_exec"
+      ],
+      "expected_tools": [
+        "file_read"
+      ],
+      "match_mode": "first_tool",
+      "reason": ""
+    },
+    {
+      "id": 10,
+      "prompt": "查看 /tmp/test.txt 文件的内容",
+      "tags": [
+        "file_read"
+      ],
+      "passed": true,
+      "called_tools": [
+        "file_read"
+      ],
+      "expected_tools": [
+        "file_read"
+      ],
+      "match_mode": "first_tool",
+      "reason": ""
+    },
+    {
+      "id": 11,
+      "prompt": "帮我读取 workspace/USER.md",
+      "tags": [
+        "file_read"
+      ],
+      "passed": true,
+      "called_tools": [
+        "file_read"
+      ],
+      "expected_tools": [
+        "file_read"
+      ],
+      "match_mode": "first_tool",
+      "reason": ""
+    },
+    {
+      "id": 12,
+      "prompt": "把 '今天天气很好，心情不错' 这句话写入 /tmp/note.txt",
+      "tags": [
+        "file_write"
+      ],
+      "passed": true,
+      "called_tools": [
+        "file_write"
+      ],
+      "expected_tools": [
+        "file_write"
+      ],
+      "match_mode": "first_tool",
+      "reason": ""
+    },
+    {
+      "id": 13,
+      "prompt": "创建一个文件 /tmp/hello.md，内容是 # Hello World",
+      "tags": [
+        "file_write"
+      ],
+      "passed": true,
+      "called_tools": [
+        "file_write"
+      ],
+      "expected_tools": [
+        "file_write"
+      ],
+      "match_mode": "first_tool",
+      "reason": ""
+    },
+    {
+      "id": 14,
+      "prompt": "记住我住在上海",
+      "tags": [
+        "memory"
+      ],
+      "passed": false,
+      "called_tools": [
+        "user_profile_update"
+      ],
+      "expected_tools": [
+        "memory_append"
+      ],
+      "match_mode": "first_tool",
+      "reason": "期望第一个工具为 ['memory_append']，实际为 user_profile_update"
+    },
+    {
+      "id": 15,
+      "prompt": "帮我记一下：我的项目截止日期是下周五",
+      "tags": [
+        "memory"
+      ],
+      "passed": true,
+      "called_tools": [
+        "memory_append"
+      ],
+      "expected_tools": [
+        "memory_append"
+      ],
+      "match_mode": "first_tool",
+      "reason": ""
+    },
+    {
+      "id": 16,
+      "prompt": "请记住我喜欢简洁的回答风格",
+      "tags": [
+        "memory"
+      ],
+      "passed": false,
+      "called_tools": [],
+      "expected_tools": [
+        "memory_append"
+      ],
+      "match_mode": "first_tool",
+      "reason": "期望第一个工具为 ['memory_append']，实际未调用任何工具"
+    },
+    {
+      "id": 17,
+      "prompt": "你好",
+      "tags": [
+        "no_tool"
+      ],
+      "passed": true,
+      "called_tools": [],
+      "expected_tools": [],
+      "match_mode": "none",
+      "reason": ""
+    },
+    {
+      "id": 18,
+      "prompt": "1 加 1 等于几？",
+      "tags": [
+        "no_tool"
+      ],
+      "passed": true,
+      "called_tools": [],
+      "expected_tools": [],
+      "match_mode": "none",
+      "reason": ""
+    },
+    {
+      "id": 19,
+      "prompt": "用中文介绍一下你自己",
+      "tags": [
+        "no_tool"
+      ],
+      "passed": true,
+      "called_tools": [],
+      "expected_tools": [],
+      "match_mode": "none",
+      "reason": ""
+    },
+    {
+      "id": 20,
+      "prompt": "帮我搜索 Python asyncio 教程，然后把搜索结果写入 /tmp/asyncio_notes.txt",
+      "tags": [
+        "chain"
+      ],
+      "passed": true,
+      "called_tools": [
+        "web_search",
+        "file_write"
+      ],
+      "expected_tools": [
+        "web_search",
+        "file_write"
+      ],
+      "match_mode": "any",
+      "reason": ""
+    },
+    {
+      "id": 21,
+      "prompt": "先查看 /tmp/data.txt 的内容，再把内容整理后保存到 /tmp/data_clean.txt",
+      "tags": [
+        "chain"
+      ],
+      "passed": false,
+      "called_tools": [
+        "file_read",
+        "shell_exec"
+      ],
+      "expected_tools": [
+        "file_read",
+        "file_write"
+      ],
+      "match_mode": "any",
+      "reason": "缺少工具调用：['file_write']，实际调用：['file_read', 'shell_exec']"
+    }
+  ]
+}
